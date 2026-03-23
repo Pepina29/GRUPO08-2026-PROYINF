@@ -22,7 +22,7 @@ El proyecto desarrollado durante el semestre 2025-02 en el ramo Análisis y Dise
 >[Ultima fase del sistema - Proyecto INF236](https://usmcl-my.sharepoint.com/:v:/g/personal/ralvear_usm_cl/IQAU0b_0S7x1Q4uP1HpM8UmlAd9H68v3KgN_FtqpXxfTOaY?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&e=yHJBWe)
 
 # Wiki y evidencia del proyecto.
->[Wiki grupo 16](https://github.com/Pepina29/GRUPO16-2025-PROYINF/wiki)
+>[Wiki grupo 8](https://github.com/Pepina29/GRUPO16-2025-PROYINF/wiki)
 
 >[Evidencia del proyecto base](https://github.com/Pepina29/GRUPO16-2025-PROYINF/wiki/evidencia-proyecto-base)
 
