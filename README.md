@@ -1,13 +1,16 @@
-# Grupo 16 INF-236
+# Grupo 8 INF-225
       Integrantes:
          · Nicolas Arellano - 202373639-2
          · Ricardo Alvear - 202373574-4
          · Josefina Pino - 202373619-8
          · Vicente Silva - 202373514-0
+         · Arturo Almonacid - 202373515-9
       
       Tutoras:
-         · Profesora Luz Chourio
-         · Ayudante Javiera Osorio
+         · Profesora Anelis Pereira Vale
+         · Ayudante Alex Urrutia
+# Identificación del Proyecto
+El proyecto desarrollado durante el semestre 2025-02 en el ramo Análisis y Diseño de Software fué, tomando como base las ideas del cliente propuestas y exigidas, un producto capaz de cotizar, realizar y hacer entrega de préstamos bancarios a través de un simulador de créditos. Este proyecto será retomado para su continuidad en adición con un nuevo integrante durante el periodo 2026-01.
 
 # Video presentación del cliente:
 >[Presentación del cliente - Proyecto INF236](https://usmcl-my.sharepoint.com/:v:/g/personal/ralvear_usm_cl/Efd_5prci_hAtxm_-2jYGNkB0jpuzTVBrOdpBnoAon1_lQ?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&e=2u1FcY)
