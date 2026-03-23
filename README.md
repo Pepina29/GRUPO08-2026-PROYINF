@@ -10,7 +10,7 @@
          · Profesora Anelis Pereira Vale
          · Ayudante Alex Urrutia
 # Identificación del Proyecto
-El proyecto desarrollado durante el semestre 2025-02 en el ramo Análisis y Diseño de Software fué, tomando como base las ideas del cliente propuestas y exigidas, un producto capaz de cotizar, realizar y hacer entrega de préstamos bancarios a través de un simulador de créditos. Este proyecto será retomado para su continuidad en adición con un nuevo integrante durante el periodo 2026-01.
+El proyecto desarrollado durante el semestre 2025-02 en el ramo Análisis y Diseño de Software fué, tomando como base las ideas del cliente propuestas y exigidas, un producto capaz de cotizar, realizar y hacer entrega de préstamos bancarios a través de un simulador de créditos. Este proyecto será retomado para su continuidad en adición con Arturo Almonacid, quien será el nuevo integrante que nos acompañará durante el periodo 2026-01 hasta el final del proyecto.
 
 # Video presentación del cliente:
 >[Presentación del cliente - Proyecto INF236](https://usmcl-my.sharepoint.com/:v:/g/personal/ralvear_usm_cl/Efd_5prci_hAtxm_-2jYGNkB0jpuzTVBrOdpBnoAon1_lQ?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&e=2u1FcY)
