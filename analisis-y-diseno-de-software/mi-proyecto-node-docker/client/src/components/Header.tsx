@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { LogIn, UserPlus, LogOut, Info, Home } from "lucide-react";
+import { LogIn, UserPlus, LogOut, Info, Home, FileText } from "lucide-react";
 import RutInput from "@/components/RutInput";
 
 
@@ -222,6 +222,18 @@ export const Header = () => {
                 <Info className="h-4 w-4 mr-2" />
                 Evaluación
               </Button>
+
+              {/* BOTÓN NUEVO: Aparece si el usuario está logueado */}
+              {user && (
+                <Button
+                  variant={location.pathname === "/datos-personales" ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => navigate("/datos-personales")}
+                >
+                  <FileText className="h-4 w-4 mr-2" />
+                  Datos Personales
+                </Button>
+              )}
             </nav>
           </div>
 

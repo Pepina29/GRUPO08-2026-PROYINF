@@ -5,6 +5,7 @@ import { fileURLToPath } from 'url';
 import cors from 'cors';
 import authRoutes from './routes/auth.js';
 import simulationRoutes from './routes/simulations.js';
+import documentRoutes from './routes/documents.js'; // <-- NUEVO: Importamos las rutas de documentos
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -19,6 +20,7 @@ app.use(express.json());
 app.use('/api', authRoutes);
 app.get('/api/health', (_req, res) => res.json({ ok: true }));
 app.use('/api/simulations', simulationRoutes);
+app.use('/api', documentRoutes); // <-- NUEVO: Conectamos la ruta (/api/upload-docs)
 
 // Static del front
 app.use(express.static(path.join(__dirname, '../client/dist')));

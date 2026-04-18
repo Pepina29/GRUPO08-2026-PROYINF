@@ -1,0 +1,3 @@
+# Ignorar subidas de usuarios
+uploads/*
+!uploads/.gitkeep

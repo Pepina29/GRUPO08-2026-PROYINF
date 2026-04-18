@@ -17,6 +17,13 @@ CREATE TABLE usuario (
   apellido_cliente  VARCHAR(50)  NOT NULL,
   email             VARCHAR(100) NOT NULL UNIQUE,
   contrasena        TEXT         NOT NULL,
+  
+  -- NUEVAS COLUMNAS PARA LOS DOCUMENTOS (BLOBs en PostgreSQL)
+  doc_frontal_bin   BYTEA,       -- El archivo binario de la cara frontal
+  doc_frontal_mime  VARCHAR(50), -- El formato (ej: 'image/png')
+  doc_trasera_bin   BYTEA,       -- El archivo binario de la cara trasera
+  doc_trasera_mime  VARCHAR(50), -- El formato (ej: 'image/png')
+  
   created_at        TIMESTAMPTZ  NOT NULL DEFAULT now(),
   updated_at        TIMESTAMPTZ  NOT NULL DEFAULT now()
 );
