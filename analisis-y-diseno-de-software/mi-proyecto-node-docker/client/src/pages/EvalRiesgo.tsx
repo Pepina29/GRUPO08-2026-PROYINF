@@ -174,9 +174,17 @@ const EvalRiesgo = () => {
                   <Shield className="h-5 w-5 mr-2" />
                   Continuar con la evaluación
                 </Button>
+                <Button
+                  onClick={() => navigate("/eval-riesgo-int")}
+                  variant="outline"
+                  size="lg"
+                  className="w-full"
+                >
+                  No autorizo el consentimiento
+                </Button>
                 
                 <p className="text-xs text-center text-muted-foreground">
-                  Debes aceptar el consentimiento para continuar
+                  Debes aceptar el consentimiento para continuar con la evaluación autorizada
                 </p>
               </div>
             </CardContent>
