@@ -1,4 +1,4 @@
-import userDocumentModel from '../Modelo/UserDocumentModel.js';
+import { userDocumentModel } from '../Modelo/UserDocumentModel.js';
 
 class DocumentController {
   constructor(model = userDocumentModel) {

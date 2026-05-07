@@ -1,4 +1,4 @@
-import simulationModel from '../Modelo/SimulationModel.js';
+import { simulationModel } from '../Modelo/SimulationModel.js';
 import { formatearRut, validarRutJs } from '../utils/rut.js';
 
 class SimulationController {

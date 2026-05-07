@@ -11,6 +11,7 @@ import EvalRiesgo from "./pages/EvalRiesgo";
 import EvalRiesgoInt from "./pages/EvalRiesgoInt";
 import Perfil from "@/pages/Perfil";
 import DatosPersonales from "@/pages/DatosPersonales";
+import CodigoAuth from "@/pages/CodigoAuth"
 
 const queryClient = new QueryClient();
 
@@ -28,6 +29,7 @@ const App = () => (
           <Route path="/datos-personales" element={<DatosPersonales />} />
           <Route path="/eval-riesgo" element={<EvalRiesgo />} />
           <Route path="/eval-riesgo-int" element={<EvalRiesgoInt />} />
+          <Route path="/codigo-auth" element={<CodigoAuth />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
