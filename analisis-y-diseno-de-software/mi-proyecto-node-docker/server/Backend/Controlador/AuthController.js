@@ -1,4 +1,4 @@
-import { userModel } from '../models/index.js';
+import userModel from '../Modelo/UserModel.js';
 import { formatearRut, validarRutJs } from '../utils/rut.js';
 
 class AuthController {

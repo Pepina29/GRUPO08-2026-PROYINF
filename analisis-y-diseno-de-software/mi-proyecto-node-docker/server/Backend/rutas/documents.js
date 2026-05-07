@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import documentController from '../controllers/DocumentController.js';
+import documentController from '../Controlador/DocumentController.js';
 import { uploadUserDocuments } from '../middlewares/uploadDocuments.js';
 
 const router = Router();

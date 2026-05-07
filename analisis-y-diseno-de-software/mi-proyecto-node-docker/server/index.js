@@ -45,8 +45,8 @@ import { fileURLToPath } from 'url';
 import cors from 'cors';
 
 import authRoutes from './Backend/rutas/auth.js';
-import authRoutes from './Backend/rutas/simulations.js';
-import authRoutes from './Backend/rutas/documents.js';
+import simulationRoutes from './Backend/rutas/simulations.js';
+import documentRoutes from './Backend/rutas/documents.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
