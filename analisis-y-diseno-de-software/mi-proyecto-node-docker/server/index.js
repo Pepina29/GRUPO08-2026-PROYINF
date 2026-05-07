@@ -64,7 +64,7 @@ app.get('/api/health', (_req, res) => res.json({ ok: true }));
 app.use('/api/simulations', simulationRoutes);
 app.use('/api', documentRoutes);
 app.use('/api/auth-code', authCodeRoutes);
-
+app.use("/api/auth-code/verify", authCodeRoutes);
 // Static del front
 app.use(express.static(path.join(__dirname, '../client/dist')));
 

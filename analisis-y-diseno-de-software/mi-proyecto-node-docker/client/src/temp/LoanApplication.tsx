@@ -53,31 +53,29 @@ const LoanApplication = () => {
   // Llamada al back para validar el código de 6 dígitos.
   // Reemplazá esta función por tu fetch real cuando lo conectes.
   const verifyAuthCode = async (code: string): Promise<boolean> => {
-  const res = await fetch("/api/auth-code/verify", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    credentials: "include",
-    body: JSON.stringify({
-      code,
-      rut: formData.rut,
-    }),
-  });
+    // Ejemplo:
+    // const res = await fetch("/api/auth-code/verify", {
+    //   method: "POST",
+    //   headers: { "Content-Type": "application/json" },
+    //   body: JSON.stringify({ code }),
+    // });
+    // const json = await res.json();
+    // return json.ok === true;
 
-  const json = await res.json().catch(() => null);
-
-  if (!res.ok) {
-    throw new Error(json?.message || "Error al verificar el código");
-  }
-
-  return json?.valid === true;
-};
+    await new Promise((r) => setTimeout(r, 800));
+    return code === "123456"; // mock provisional
+  };
 
   // Envío real de la solicitud, recién después de validar el código.
   const sendApplication = async () => {
     console.log("Datos del formulario:", formData);
     console.log("Datos del préstamo:", loanData);
+
+    // const response = await fetch('http://localhost:3000/api/solicitudes', {
+    //   method: 'POST',
+    //   headers: { 'Content-Type': 'application/json' },
+    //   body: JSON.stringify({ ...formData, ...loanData })
+    // });
   };
 
   const handleConfirmCode = async () => {
@@ -90,11 +88,10 @@ const LoanApplication = () => {
     try {
       const ok = await verifyAuthCode(authCode);
       if (!ok) {
-      setAuthError("Código incorrecto. Ingrésalo nuevamente.");
-      setAuthCode("");
-      setVerifying(false);
-      return;
-    }
+        setAuthError("Código incorrecto. Intentá nuevamente.");
+        setVerifying(false);
+        return;
+      }
 
       await sendApplication();
 
@@ -107,13 +104,9 @@ const LoanApplication = () => {
       setVerifying(false);
       setTimeout(() => navigate("/"), 1500);
     } catch (err) {
-  setVerifying(false);
-  setAuthError(
-    err instanceof Error
-      ? err.message
-      : "Hubo un problema al verificar. Intentá nuevamente."
-  );
-}
+      setVerifying(false);
+      setAuthError("Hubo un problema al verificar. Intentá nuevamente.");
+    }
   };
 
   return (
@@ -263,11 +256,7 @@ const LoanApplication = () => {
                           <InputOTPSlot
                             key={i}
                             index={i}
-                            className={
-                              !showCode && authCode[i]
-                                ? "relative text-transparent after:content-['•'] after:absolute after:inset-0 after:flex after:items-center after:justify-center after:text-foreground"
-                                : ""
-                            }
+                            className={showCode ? "" : "[&>*]:hidden after:content-['•'] after:text-foreground"}
                           />
                         ))}
                       </InputOTPGroup>

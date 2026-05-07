@@ -84,6 +84,53 @@ class AuthCodeController {
       });
     }
   }
+
+  async verificar(req, res) {
+    try {
+      const { code } = req.body;
+      const rut = getRutFromRequest(req);
+
+      if (!rut) {
+        return res.status(401).json({
+          ok: false,
+          valid: false,
+          message: "No hay usuario autenticado",
+        });
+      }
+
+      if (!code || !/^\d{6}$/.test(String(code))) {
+        return res.status(400).json({
+          ok: false,
+          valid: false,
+          message: "El código debe tener exactamente 6 dígitos",
+        });
+      }
+
+      const valid = await userModel.verificarAutenticador(rut, code);
+
+      if (!valid) {
+        return res.json({
+          ok: true,
+          valid: false,
+          message: "Código incorrecto",
+        });
+      }
+
+      return res.json({
+        ok: true,
+        valid: true,
+        message: "Código correcto",
+      });
+    } catch (error) {
+      console.error("Error verificando código autenticador:", error);
+
+      return res.status(500).json({
+        ok: false,
+        valid: false,
+        message: "Error interno al verificar el código autenticador",
+      });
+    }
+  }
 }
 
 export default new AuthCodeController();
