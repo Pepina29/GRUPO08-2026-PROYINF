@@ -215,7 +215,7 @@ const CodigoAuth = () => {
             <Separator />
 
             <div className="rounded-lg border border-dashed p-4 text-xs text-muted-foreground space-y-1">
-              <p>• Elege un código que recuerdes pero que no sea fácil de adivinar.</p>
+              <p>• Elige un código que recuerdes pero que no sea fácil de adivinar.</p>
               <p>• Evita secuencias obvias como 123456 o fechas conocidas.</p>
               <p>• No compartas este código con nadie, esta es tu firma digital y autentifica que la persona eres TÚ.</p>
             </div>
