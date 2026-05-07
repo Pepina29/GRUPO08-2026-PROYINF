@@ -92,7 +92,7 @@ const CodigoAuth = () => {
 
   const goConfirm = () => {
     if (!codeReady) {
-      showToast("Código incompleto", "Ingresá los 6 dígitos.", "error");
+      showToast("Código incompleto", "Ingresa los 6 dígitos.", "error");
       return;
     }
     setStep("confirm");
@@ -102,7 +102,7 @@ const CodigoAuth = () => {
   const finalCode = code.trim();
 
   if (finalCode.length !== 6 || confirm !== finalCode) {
-    showToast("Los códigos no coinciden", "Revisá e intentá nuevamente.", "error");
+    showToast("Los códigos no coinciden", "Revisa e intenta nuevamente.", "error");
     return;
   }
 
@@ -110,11 +110,11 @@ const CodigoAuth = () => {
     setSaving(true);
     await saveAuthCode(finalCode);
     window.dispatchEvent(new CustomEvent("auth-code:changed"));
-    showToast("Código guardado", "Ya podés usarlo para autenticarte.", "success");
+    showToast("Código guardado", "Guardado y listo para usar.", "success");
     setTimeout(() => navigate(-1), 800);
   } catch (e: any) {
     console.error("[CodigoAuth] Error guardando:", e);
-    showToast("Error al guardar", e?.message || "Intentá nuevamente en unos segundos.", "error");
+    showToast("Error al guardar", e?.message || "Intenta nuevamente en unos segundos.", "error");
   } finally {
     setSaving(false);
   }
@@ -142,12 +142,12 @@ const CodigoAuth = () => {
           <CardHeader className="pb-3">
             <CardTitle className="text-xl flex items-center gap-2">
               <KeyRound className="h-5 w-5 text-accent" />
-              {step === "create" ? "Creá tu código de autenticación" : "Confirmá tu código"}
+              {step === "create" ? "Crea tu código de autenticación" : "Confirma tu código"}
             </CardTitle>
             <p className="text-sm text-muted-foreground">
               {step === "create"
-                ? "Elegí un código de 6 dígitos. Lo vas a usar para autenticarte más adelante."
-                : "Volvé a ingresar el mismo código para confirmarlo."}
+                ? "Elege un código de 6 dígitos. Lo vas a usar para autenticarte más adelante, esta será tu firma digital."
+                : "Vuleve a ingresar el mismo código para confirmarlo."}
             </p>
           </CardHeader>
 
@@ -215,9 +215,9 @@ const CodigoAuth = () => {
             <Separator />
 
             <div className="rounded-lg border border-dashed p-4 text-xs text-muted-foreground space-y-1">
-              <p>• Elegí un código que recuerdes pero que no sea fácil de adivinar.</p>
-              <p>• Evitá secuencias obvias como 123456 o fechas conocidas.</p>
-              <p>• No compartas este código con nadie.</p>
+              <p>• Elege un código que recuerdes pero que no sea fácil de adivinar.</p>
+              <p>• Evita secuencias obvias como 123456 o fechas conocidas.</p>
+              <p>• No compartas este código con nadie, esta es tu firma digital y autentifica que la persona eres TÚ.</p>
             </div>
           </CardContent>
 
