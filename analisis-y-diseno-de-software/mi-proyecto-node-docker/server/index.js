@@ -47,6 +47,7 @@ import cors from 'cors';
 import authRoutes from './Backend/rutas/auth.js';
 import simulationRoutes from './Backend/rutas/simulations.js';
 import documentRoutes from './Backend/rutas/documents.js';
+import authCodeRoutes from "./Backend/rutas/authCodeRoutes.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -62,6 +63,7 @@ app.use('/api', authRoutes);
 app.get('/api/health', (_req, res) => res.json({ ok: true }));
 app.use('/api/simulations', simulationRoutes);
 app.use('/api', documentRoutes);
+app.use('/api/auth-code', authCodeRoutes);
 
 // Static del front
 app.use(express.static(path.join(__dirname, '../client/dist')));

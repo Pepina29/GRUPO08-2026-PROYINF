@@ -45,6 +45,8 @@ const Perfil = () => {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [compareOpen, setCompareOpen] = useState(false);
   const navigate = useNavigate();
+  const [hasAuthCode, setHasAuthCode] = useState(false);
+  const [checkingAuthCode, setCheckingAuthCode] = useState(true);
 
   // ---- MiniToast state ----
   const [toastOpen, setToastOpen] = useState(false);
@@ -72,13 +74,45 @@ const Perfil = () => {
       showToast("No se pudo cargar", "Inténtalo nuevamente.", "error");
     }
   };
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+    loadAuthCodeStatus();
+  }, []);
 
   useEffect(() => {
     const onChanged = () => load();
     window.addEventListener("simulations:changed", onChanged as EventListener);
     return () => window.removeEventListener("simulations:changed", onChanged as EventListener);
   }, []);
+
+  const loadAuthCodeStatus = async () => {
+  const u = getLoggedUser();
+
+  if (!u?.rut) {
+    setHasAuthCode(false);
+    setCheckingAuthCode(false);
+    return;
+  }
+
+  try {
+    setCheckingAuthCode(true);
+
+    const r = await fetch(`/api/auth-code/status?rut=${encodeURIComponent(u.rut)}`);
+
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+
+    const j = await r.json();
+
+    setHasAuthCode(Boolean(j?.hasAuthCode));
+  } catch (e) {
+    console.error("[Perfil] loadAuthCodeStatus() fallo:", e);
+
+    // Mejor dejarlo en false para no bloquear al usuario si falla la consulta.
+    setHasAuthCode(false);
+  } finally {
+    setCheckingAuthCode(false);
+  }
+};
 
   const onDelete = async (id: string) => {
     const u = getLoggedUser();
@@ -181,10 +215,12 @@ const Perfil = () => {
             <Button variant="outline" onClick={onClear} disabled={list.length === 0}>
               Vaciar todo
             </Button>
-            <Button variant="default" onClick={() => navigate("/codigo-auth")}>
-              <ShieldCheck className="mr-2 h-4 w-4" />
-              Generar código de autenticación
-            </Button>
+            {!checkingAuthCode && !hasAuthCode && (
+              <Button variant="default" onClick={() => navigate("/codigo-auth")}>
+                <ShieldCheck className="mr-2 h-4 w-4" />
+                Generar código de autenticación
+              </Button>
+            )}
           </div>
         </div>
 
