@@ -121,6 +121,7 @@ CREATE TABLE solicitud_prestamo (
   id_solicitud     SERIAL PRIMARY KEY,
   rut_cliente      VARCHAR(12) NOT NULL REFERENCES usuario(rut_cliente) ON DELETE CASCADE,
   monto_cliente    NUMERIC(12,2) NOT NULL CHECK (monto_cliente > 0),
+  estado VARCHAR(30) NOT NULL,
   cant_cuotas      INT NOT NULL CHECK (cant_cuotas > 0),
   fecha_solicitud  TIMESTAMPTZ NOT NULL DEFAULT now(),
   created_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -167,3 +168,77 @@ DROP TRIGGER IF EXISTS trg_enforce_sim_limit ON user_simulation;
 CREATE TRIGGER trg_enforce_sim_limit
 BEFORE INSERT ON user_simulation
 FOR EACH ROW EXECUTE FUNCTION enforce_sim_limit();
+
+-- ======================================================================
+-- Tabla: evaluacion
+-- Una evaluación pertenece a una solicitud de préstamo
+-- ======================================================================
+CREATE TABLE evaluacion (
+  id_evaluacion   SERIAL PRIMARY KEY,
+  id_solicitud    INT NOT NULL UNIQUE REFERENCES solicitud_prestamo(id_solicitud) ON DELETE CASCADE,
+  riesgo          INT NOT NULL CHECK (riesgo >= 0),
+  created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at      TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_evaluacion_solicitud 
+ON evaluacion(id_solicitud);
+
+DROP TRIGGER IF EXISTS trg_evaluacion_updated ON evaluacion;
+CREATE TRIGGER trg_evaluacion_updated
+BEFORE UPDATE ON evaluacion
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+
+-- ======================================================================
+-- Tabla: prestamo
+-- Un préstamo nace desde una solicitud aprobada
+-- ======================================================================
+CREATE TABLE prestamo (
+  id_prestamo     SERIAL PRIMARY KEY,
+  id_solicitud    INT NOT NULL UNIQUE REFERENCES solicitud_prestamo(id_solicitud) ON DELETE CASCADE,
+  monto           NUMERIC(12,2) NOT NULL CHECK (monto > 0),
+  tasa            NUMERIC(6,4) NOT NULL CHECK (tasa >= 0),
+  plazo           INT NOT NULL CHECK (plazo > 0),
+  estado          VARCHAR(30) NOT NULL DEFAULT 'activo',
+  created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at      TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_prestamo_solicitud 
+ON prestamo(id_solicitud);
+
+CREATE INDEX IF NOT EXISTS idx_prestamo_estado 
+ON prestamo(estado);
+
+DROP TRIGGER IF EXISTS trg_prestamo_updated ON prestamo;
+CREATE TRIGGER trg_prestamo_updated
+BEFORE UPDATE ON prestamo
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+
+-- ======================================================================
+-- Tabla: pago
+-- Un pago pertenece a un préstamo específico
+-- ======================================================================
+CREATE TABLE pago (
+  id_pago         SERIAL PRIMARY KEY,
+  id_prestamo     INT NOT NULL REFERENCES prestamo(id_prestamo) ON DELETE CASCADE,
+  fecha_pago      DATE NOT NULL DEFAULT CURRENT_DATE,
+  dias_atraso     INT NOT NULL DEFAULT 0 CHECK (dias_atraso >= 0),
+  monto           NUMERIC(12,2) NOT NULL CHECK (monto > 0),
+  monto_atraso    NUMERIC(12,2) NOT NULL DEFAULT 0 CHECK (monto_atraso >= 0),
+  created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at      TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_pago_prestamo 
+ON pago(id_prestamo);
+
+CREATE INDEX IF NOT EXISTS idx_pago_fecha 
+ON pago(fecha_pago);
+
+DROP TRIGGER IF EXISTS trg_pago_updated ON pago;
+CREATE TRIGGER trg_pago_updated
+BEFORE UPDATE ON pago
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();

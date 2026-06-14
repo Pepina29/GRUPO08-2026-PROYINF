@@ -48,6 +48,9 @@ import authRoutes from './Backend/rutas/auth.js';
 import simulationRoutes from './Backend/rutas/simulations.js';
 import documentRoutes from './Backend/rutas/documents.js';
 import authCodeRoutes from "./Backend/rutas/authCodeRoutes.js";
+import userRoutes from "./Backend/rutas/userRoutes.js";
+import session from "express-session";
+import sessionRoutes from "./Backend/rutas/sessionRoutes.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -55,8 +58,22 @@ const __dirname = path.dirname(__filename);
 const app = express();
 
 // Middlewares globales
-app.use(cors({ origin: process.env.CORS_ORIGIN || 'http://localhost:5173' }));
+app.use(cors({
+  origin: process.env.CORS_ORIGIN || "http://localhost:5173",
+  credentials: true,
+}));
 app.use(express.json());
+app.use(session({
+  secret: process.env.SESSION_SECRET || "dev-secret-sistema-prestamos",
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: false,
+    maxAge: 1000 * 60 * 60,
+  },
+}));
 
 // API
 app.use('/api', authRoutes);
@@ -65,6 +82,8 @@ app.use('/api/simulations', simulationRoutes);
 app.use('/api', documentRoutes);
 app.use('/api/auth-code', authCodeRoutes);
 app.use("/api/auth-code/verify", authCodeRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/session", sessionRoutes);
 // Static del front
 app.use(express.static(path.join(__dirname, '../client/dist')));
 

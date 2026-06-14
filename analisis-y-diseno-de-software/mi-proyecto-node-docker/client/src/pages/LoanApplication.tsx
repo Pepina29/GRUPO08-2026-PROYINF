@@ -1,21 +1,67 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { Header } from "@/components/Header";
-import { FileText, ArrowLeft, ShieldCheck, Loader2, Eye, EyeOff } from "lucide-react";
+import {
+  FileText,
+  ArrowLeft,
+  ShieldCheck,
+  Loader2,
+  Eye,
+  EyeOff,
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+
+const USER_KEY = "app:user";
+
+type LoanData = {
+  monto?: number;
+  tasaInteres?: number;
+  cuotas?: number;
+  fechaPrimerPago?: string;
+  pagoPorCuota?: number;
+  montoTotal?: number;
+};
+
+const getRutFromLocalStorage = (): string | null => {
+  try {
+    const raw = localStorage.getItem(USER_KEY);
+
+    if (!raw) {
+      return null;
+    }
+
+    const parsed = JSON.parse(raw);
+
+    return (
+      parsed?.rut ||
+      parsed?.rut_cliente ||
+      parsed?.user?.rut ||
+      parsed?.user?.rut_cliente ||
+      null
+    );
+  } catch {
+    return null;
+  }
+};
 
 const LoanApplication = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
 
-  // Datos del préstamo simulado (si vienen de la simulación)
-  const loanData = location.state || {};
+  // Datos del préstamo simulado, vienen desde LoanResults.tsx
+  const loanData = (location.state || {}) as LoanData;
 
   const [formData, setFormData] = useState({
     nombre: "",
@@ -28,73 +74,185 @@ const LoanApplication = () => {
     ingresos: "",
   });
 
-  // ── Estado del "modal" de autenticación ──────────────────────────────
+  const [loadingUser, setLoadingUser] = useState(true);
+  const [datosUsuarioCargados, setDatosUsuarioCargados] = useState(false);
+
+  // Estado del modal de autenticación
   const [authOpen, setAuthOpen] = useState(false);
   const [authCode, setAuthCode] = useState("");
   const [showCode, setShowCode] = useState(false);
   const [verifying, setVerifying] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    const crearSesionSolicitud = async () => {
+      const rut = getRutFromLocalStorage();
+
+      if (!rut) {
+        throw new Error("No se encontró el RUT del usuario guardado en el navegador.");
+      }
+
+      const res = await fetch("/api/session/loan-user", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ rut }),
+      });
+
+      const json = await res.json().catch(() => null);
+
+      if (!res.ok) {
+        throw new Error(
+          json?.message || "No se pudo crear la sesión de solicitud."
+        );
+      }
+    };
+
+    const cargarDatosUsuario = async () => {
+      try {
+        // Primero crea la sesión Express especial para este flujo
+        await crearSesionSolicitud();
+
+        // Después pide los datos usando esa sesión
+        const res = await fetch("/api/users/datos-solicitud", {
+          method: "GET",
+          credentials: "include",
+        });
+
+        const json = await res.json().catch(() => null);
+
+        if (!res.ok) {
+          if (!cancelled) {
+            toast({
+              title: "No se pudieron cargar tus datos",
+              description:
+                json?.message ||
+                "La página se abrió igual, pero tendrás que completar los datos manualmente.",
+              variant: "destructive",
+            });
+
+            setDatosUsuarioCargados(false);
+          }
+
+          return;
+        }
+
+        const user = json?.user || {};
+
+        if (!cancelled) {
+          setFormData((prev) => ({
+            ...prev,
+            nombre: user.nombre || "",
+            apellido: user.apellido || "",
+            rut: user.rut || "",
+            email: user.email || "",
+          }));
+
+          setDatosUsuarioCargados(true);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          toast({
+            title: "No se pudieron cargar tus datos",
+            description:
+              error instanceof Error
+                ? error.message
+                : "La página se abrió igual, pero tendrás que completar los datos manualmente.",
+            variant: "destructive",
+          });
+
+          setDatosUsuarioCargados(false);
+        }
+      } finally {
+        if (!cancelled) {
+          setLoadingUser(false);
+        }
+      }
+    };
+
+    cargarDatosUsuario();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [toast]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    const { name, value } = e.target;
+
+    const camposBloqueados = ["nombre", "apellido", "rut", "email"];
+
+    // Si el backend logró cargar los datos, estos campos quedan bloqueados.
+    // Si no logró cargarlos, se pueden escribir manualmente.
+    if (datosUsuarioCargados && camposBloqueados.includes(name)) {
+      return;
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
-  // El submit ya NO envía: abre la verificación de código.
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
     setAuthError(null);
     setAuthCode("");
     setAuthOpen(true);
   };
 
-  // Llamada al back para validar el código de 6 dígitos.
-  // Reemplazá esta función por tu fetch real cuando lo conectes.
   const verifyAuthCode = async (code: string): Promise<boolean> => {
-  const res = await fetch("/api/auth-code/verify", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    credentials: "include",
-    body: JSON.stringify({
-      code,
-      rut: formData.rut,
-    }),
-  });
+    const res = await fetch("/api/auth-code/verify", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({
+        code,
+        rut: formData.rut,
+      }),
+    });
 
-  const json = await res.json().catch(() => null);
+    const json = await res.json().catch(() => null);
 
-  if (!res.ok) {
-    throw new Error(json?.message || "Error al verificar el código");
-  }
+    if (!res.ok) {
+      throw new Error(json?.message || "Error al verificar el código");
+    }
 
-  return json?.valid === true;
-};
+    return json?.valid === true;
+  };
 
-  // Envío real de la solicitud, recién después de validar el código.
   const sendApplication = async () => {
     console.log("Datos del formulario:", formData);
     console.log("Datos del préstamo:", loanData);
+
+    // Aquí después conectamos el POST real para guardar la solicitud.
   };
 
   const handleConfirmCode = async () => {
     if (authCode.length < 6) {
-      setAuthError("Ingresá los 6 dígitos.");
+      setAuthError("Ingresa los 6 dígitos.");
       return;
     }
+
     setVerifying(true);
     setAuthError(null);
+
     try {
       const ok = await verifyAuthCode(authCode);
+
       if (!ok) {
-      setAuthError("Código incorrecto. Ingrésalo nuevamente.");
-      setAuthCode("");
-      setVerifying(false);
-      return;
-    }
+        setAuthError("Código incorrecto. Ingrésalo nuevamente.");
+        setAuthCode("");
+        setVerifying(false);
+        return;
+      }
 
       await sendApplication();
 
@@ -105,16 +263,19 @@ const LoanApplication = () => {
 
       setAuthOpen(false);
       setVerifying(false);
+
       setTimeout(() => navigate("/"), 1500);
     } catch (err) {
-  setVerifying(false);
-  setAuthError(
-    err instanceof Error
-      ? err.message
-      : "Hubo un problema al verificar. Intentá nuevamente."
-  );
-}
+      setVerifying(false);
+      setAuthError(
+        err instanceof Error
+          ? err.message
+          : "Hubo un problema al verificar. Intenta nuevamente."
+      );
+    }
   };
+
+  const camposPersonalesBloqueados = datosUsuarioCargados;
 
   return (
     <div className="min-h-screen bg-background">
@@ -132,18 +293,45 @@ const LoanApplication = () => {
               <FileText className="h-6 w-6 text-accent" />
               Solicitud de Préstamo
             </CardTitle>
+
             <CardDescription>
               Completa tus datos para procesar tu solicitud
             </CardDescription>
 
+            {loadingUser && (
+              <p className="text-sm text-muted-foreground mt-2">
+                Intentando cargar tus datos personales...
+              </p>
+            )}
+
+            {!loadingUser && datosUsuarioCargados && (
+              <p className="text-sm text-muted-foreground mt-2">
+                Tus datos personales fueron cargados automáticamente.
+              </p>
+            )}
+
+            {!loadingUser && !datosUsuarioCargados && (
+              <p className="text-sm text-muted-foreground mt-2">
+                No se pudieron cargar tus datos automáticamente. Puedes
+                completarlos manualmente por ahora.
+              </p>
+            )}
+
             {loanData.monto && (
               <div className="mt-4 p-4 bg-accent/10 rounded-lg">
-                <p className="text-sm font-semibold mb-2">Resumen de tu préstamo:</p>
+                <p className="text-sm font-semibold mb-2">
+                  Resumen de tu préstamo:
+                </p>
+
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <span className="text-muted-foreground">Monto:</span>
-                  <span className="font-medium">${loanData.monto?.toLocaleString("es-CL")}</span>
+                  <span className="font-medium">
+                    ${loanData.monto?.toLocaleString("es-CL")}
+                  </span>
+
                   <span className="text-muted-foreground">Cuotas:</span>
                   <span className="font-medium">{loanData.cuotas}</span>
+
                   <span className="text-muted-foreground">Pago mensual:</span>
                   <span className="font-medium">
                     ${loanData.pagoPorCuota?.toLocaleString("es-CL")}
@@ -158,59 +346,147 @@ const LoanApplication = () => {
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="nombre">Nombre *</Label>
-                  <Input id="nombre" name="nombre" type="text" placeholder="Juan"
-                    value={formData.nombre} onChange={handleChange} required />
+                  <Input
+                    id="nombre"
+                    name="nombre"
+                    type="text"
+                    placeholder="Juan"
+                    value={formData.nombre}
+                    onChange={handleChange}
+                    required
+                    readOnly={camposPersonalesBloqueados}
+                    className={
+                      camposPersonalesBloqueados
+                        ? "bg-muted cursor-not-allowed"
+                        : ""
+                    }
+                  />
                 </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="apellido">Apellido *</Label>
-                  <Input id="apellido" name="apellido" type="text" placeholder="Pérez"
-                    value={formData.apellido} onChange={handleChange} required />
+                  <Input
+                    id="apellido"
+                    name="apellido"
+                    type="text"
+                    placeholder="Pérez"
+                    value={formData.apellido}
+                    onChange={handleChange}
+                    required
+                    readOnly={camposPersonalesBloqueados}
+                    className={
+                      camposPersonalesBloqueados
+                        ? "bg-muted cursor-not-allowed"
+                        : ""
+                    }
+                  />
                 </div>
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="rut">RUT *</Label>
-                <Input id="rut" name="rut" type="text" placeholder="12.345.678-9"
-                  value={formData.rut} onChange={handleChange} required />
+                <Input
+                  id="rut"
+                  name="rut"
+                  type="text"
+                  placeholder="12.345.678-9"
+                  value={formData.rut}
+                  onChange={handleChange}
+                  required
+                  readOnly={camposPersonalesBloqueados}
+                  className={
+                    camposPersonalesBloqueados
+                      ? "bg-muted cursor-not-allowed"
+                      : ""
+                  }
+                />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="email">Email *</Label>
-                <Input id="email" name="email" type="email" placeholder="correo@ejemplo.com"
-                  value={formData.email} onChange={handleChange} required />
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  placeholder="correo@ejemplo.com"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                  readOnly={camposPersonalesBloqueados}
+                  className={
+                    camposPersonalesBloqueados
+                      ? "bg-muted cursor-not-allowed"
+                      : ""
+                  }
+                />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="telefono">Teléfono *</Label>
-                <Input id="telefono" name="telefono" type="tel" placeholder="+56 9 1234 5678"
-                  value={formData.telefono} onChange={handleChange} required />
+                <Input
+                  id="telefono"
+                  name="telefono"
+                  type="tel"
+                  placeholder="+56 9 1234 5678"
+                  value={formData.telefono}
+                  onChange={handleChange}
+                  required
+                />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="direccion">Dirección *</Label>
-                <Input id="direccion" name="direccion" type="text" placeholder="Av. Principal 123"
-                  value={formData.direccion} onChange={handleChange} required />
+                <Input
+                  id="direccion"
+                  name="direccion"
+                  type="text"
+                  placeholder="Av. Principal 123"
+                  value={formData.direccion}
+                  onChange={handleChange}
+                  required
+                />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="ciudad">Ciudad *</Label>
-                <Input id="ciudad" name="ciudad" type="text" placeholder="Santiago"
-                  value={formData.ciudad} onChange={handleChange} required />
+                <Input
+                  id="ciudad"
+                  name="ciudad"
+                  type="text"
+                  placeholder="Santiago"
+                  value={formData.ciudad}
+                  onChange={handleChange}
+                  required
+                />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="ingresos">Ingresos mensuales *</Label>
-                <Input id="ingresos" name="ingresos" type="number" placeholder="500000"
-                  value={formData.ingresos} onChange={handleChange} required min="0" />
+                <Input
+                  id="ingresos"
+                  name="ingresos"
+                  type="number"
+                  placeholder="500000"
+                  value={formData.ingresos}
+                  onChange={handleChange}
+                  required
+                  min="0"
+                />
                 <p className="text-xs text-muted-foreground">
                   Indica tus ingresos mensuales aproximados
                 </p>
               </div>
 
               <div className="flex gap-4">
-                <Button type="button" variant="outline" onClick={() => navigate(-1)} className="flex-1">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => navigate(-1)}
+                  className="flex-1"
+                >
                   Cancelar
                 </Button>
+
                 <Button type="submit" variant="accent" className="flex-1">
                   <FileText className="h-4 w-4 mr-2" />
                   Enviar Solicitud
@@ -219,7 +495,6 @@ const LoanApplication = () => {
             </form>
           </CardContent>
 
-          {/* ── Overlay "modal" de autenticación dentro de la misma Card ── */}
           {authOpen && (
             <div className="absolute inset-0 z-10 flex items-start justify-center bg-background/85 backdrop-blur-sm p-6 overflow-auto animate-in fade-in-0">
               <div className="w-full max-w-md mt-8 rounded-xl border bg-card text-card-foreground shadow-lg p-6 space-y-5">
@@ -230,20 +505,27 @@ const LoanApplication = () => {
                       Verificación de identidad
                     </h2>
                   </div>
+
                   <p className="text-sm text-muted-foreground">
-                    Ingresá tu código de autenticación de 6 dígitos para confirmar el envío.
+                    Ingresa tu código de autenticación de 6 dígitos para
+                    confirmar el envío.
                   </p>
                 </div>
 
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <Label className="text-sm">Código</Label>
+
                     <button
                       type="button"
                       onClick={() => setShowCode((s) => !s)}
                       className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
                     >
-                      {showCode ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                      {showCode ? (
+                        <EyeOff className="h-3.5 w-3.5" />
+                      ) : (
+                        <Eye className="h-3.5 w-3.5" />
+                      )}
                       {showCode ? "Ocultar" : "Mostrar"}
                     </button>
                   </div>
@@ -275,7 +557,9 @@ const LoanApplication = () => {
                   </div>
 
                   {authError && (
-                    <p className="text-xs text-destructive text-center">{authError}</p>
+                    <p className="text-xs text-destructive text-center">
+                      {authError}
+                    </p>
                   )}
                 </div>
 
@@ -289,6 +573,7 @@ const LoanApplication = () => {
                   >
                     Cancelar
                   </Button>
+
                   <Button
                     type="button"
                     variant="accent"

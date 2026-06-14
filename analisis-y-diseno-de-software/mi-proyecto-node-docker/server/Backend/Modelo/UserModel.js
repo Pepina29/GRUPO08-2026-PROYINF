@@ -67,6 +67,21 @@ export default class UserModel extends BaseModel {
   return rows.length > 0;
 }
 
+async getDatosSolicitudByRut(rut) {
+  const sql = `
+    SELECT
+      rut_cliente AS rut,
+      nombre_cliente AS nombre,
+      apellido_cliente AS apellido,
+      email
+    FROM usuario
+    WHERE rut_cliente = $1
+  `;
+
+  const { rows } = await this.query(sql, [rut]);
+  return rows[0] ?? null;
+}
+
 }
 
 export const userModel = new UserModel();
