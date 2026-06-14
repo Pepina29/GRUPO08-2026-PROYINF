@@ -51,6 +51,9 @@ import authCodeRoutes from "./Backend/rutas/authCodeRoutes.js";
 import userRoutes from "./Backend/rutas/userRoutes.js";
 import session from "express-session";
 import sessionRoutes from "./Backend/rutas/sessionRoutes.js";
+import solicitudPrestamoRoutes from './Backend/rutas/SolicitudPrestamoRoutes.js';
+import evaluacionRoutes from './Backend/rutas/EvaluacionRoutes.js';
+import prestamoRoutes from "./Backend/rutas/prestamoRoutes.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -84,6 +87,9 @@ app.use('/api/auth-code', authCodeRoutes);
 app.use("/api/auth-code/verify", authCodeRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/session", sessionRoutes);
+app.use('/api/solicitudes-prestamo', solicitudPrestamoRoutes);
+app.use('/api/evaluaciones', evaluacionRoutes);
+app.use("/api/prestamos", prestamoRoutes);
 // Static del front
 app.use(express.static(path.join(__dirname, '../client/dist')));
 

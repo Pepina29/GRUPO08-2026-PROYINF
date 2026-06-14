@@ -206,33 +206,89 @@ const LoanApplication = () => {
     setAuthOpen(true);
   };
 
-  const verifyAuthCode = async (code: string): Promise<boolean> => {
-    const res = await fetch("/api/auth-code/verify", {
+ const verifyAuthCode = async (code: string): Promise<boolean> => {
+  const rut = formData.rut || getRutFromLocalStorage();
+
+  console.log("Verificando autenticador con:", {
+    rut,
+    code,
+  });
+
+  if (!rut) {
+    throw new Error("No se encontró el RUT del usuario para verificar el código.");
+  }
+
+  const res = await fetch("/api/auth-code/verify", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+    body: JSON.stringify({
+      rut,
+      code,
+      autenticador: code,
+    }),
+  });
+
+  const json = await res.json().catch(() => null);
+
+  console.log("Respuesta verify:", json);
+
+  if (!res.ok) {
+    throw new Error(
+      json?.message || json?.error || "Error al verificar el código"
+    );
+  }
+
+  return json?.valid === true || json?.ok === true;
+};
+
+  const sendApplication = async () => {
+    const monto = Number(loanData.monto);
+    const cantCuotas = Number(loanData.cuotas);
+    const sueldo = Number(formData.ingresos);
+
+    if (!Number.isFinite(monto) || monto <= 0) {
+      throw new Error("No se encontró un monto válido para la solicitud.");
+    }
+
+    if (!Number.isFinite(cantCuotas) || cantCuotas <= 0) {
+      throw new Error("No se encontró una cantidad de cuotas válida.");
+    }
+
+    if (!Number.isFinite(sueldo) || sueldo <= 0) {
+      throw new Error("Ingresa un sueldo mensual válido.");
+    }
+
+    const res = await fetch("/api/solicitudes-prestamo", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       credentials: "include",
       body: JSON.stringify({
-        code,
-        rut: formData.rut,
+        rut: formData.rut || getRutFromLocalStorage(),
+        monto,
+        sueldo,
+        cantCuotas,
+        telefono: formData.telefono,
+        direccion: formData.direccion,
+        ciudad: formData.ciudad,
       }),
     });
 
     const json = await res.json().catch(() => null);
 
-    if (!res.ok) {
-      throw new Error(json?.message || "Error al verificar el código");
+    if (!res.ok || json?.ok === false) {
+      throw new Error(
+        json?.message ||
+          json?.error ||
+          "No se pudo guardar la solicitud de préstamo."
+      );
     }
 
-    return json?.valid === true;
-  };
-
-  const sendApplication = async () => {
-    console.log("Datos del formulario:", formData);
-    console.log("Datos del préstamo:", loanData);
-
-    // Aquí después conectamos el POST real para guardar la solicitud.
+    return json;
   };
 
   const handleConfirmCode = async () => {
@@ -254,11 +310,16 @@ const LoanApplication = () => {
         return;
       }
 
-      await sendApplication();
+      const solicitudCreada = await sendApplication();
 
       toast({
         title: "¡Solicitud enviada!",
-        description: "Nos pondremos en contacto contigo pronto.",
+        description:
+          solicitudCreada?.estado === "aceptada"
+            ? "Tu solicitud fue aceptada automáticamente."
+            : solicitudCreada?.estado === "rechazada"
+              ? "Tu solicitud fue rechazada según la evaluación de riesgo."
+              : "Tu solicitud fue registrada correctamente.",
       });
 
       setAuthOpen(false);

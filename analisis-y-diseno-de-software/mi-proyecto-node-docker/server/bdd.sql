@@ -121,7 +121,8 @@ CREATE TABLE solicitud_prestamo (
   id_solicitud     SERIAL PRIMARY KEY,
   rut_cliente      VARCHAR(12) NOT NULL REFERENCES usuario(rut_cliente) ON DELETE CASCADE,
   monto_cliente    NUMERIC(12,2) NOT NULL CHECK (monto_cliente > 0),
-  estado VARCHAR(30) NOT NULL,
+  sueldo_cliente   NUMERIC(12,2) NOT NULL CHECK (sueldo_cliente > 0),
+  estado           VARCHAR(30) NOT NULL,
   cant_cuotas      INT NOT NULL CHECK (cant_cuotas > 0),
   fecha_solicitud  TIMESTAMPTZ NOT NULL DEFAULT now(),
   created_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -174,11 +175,11 @@ FOR EACH ROW EXECUTE FUNCTION enforce_sim_limit();
 -- Una evaluación pertenece a una solicitud de préstamo
 -- ======================================================================
 CREATE TABLE evaluacion (
-  id_evaluacion   SERIAL PRIMARY KEY,
-  id_solicitud    INT NOT NULL UNIQUE REFERENCES solicitud_prestamo(id_solicitud) ON DELETE CASCADE,
-  riesgo          INT NOT NULL CHECK (riesgo >= 0),
-  created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at      TIMESTAMPTZ NOT NULL DEFAULT now()
+  id_evaluacion SERIAL PRIMARY KEY,
+  id_solicitud INT NOT NULL UNIQUE REFERENCES solicitud_prestamo(id_solicitud) ON DELETE CASCADE,
+  riesgo INT NOT NULL CHECK (riesgo BETWEEN 1 AND 10),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 CREATE INDEX IF NOT EXISTS idx_evaluacion_solicitud 
