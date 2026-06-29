@@ -41,17 +41,17 @@ export function validarFormatoRut(rut: string): boolean {
  */
 export function calcularDV(rutSinDV: string): string {
   const rutNumeros = rutSinDV.replace(/\./g, '').replace(/-/g, '');
-  
+
   let suma = 0;
   let multiplicador = 2;
-  
+
   for (let i = rutNumeros.length - 1; i >= 0; i--) {
-    suma += parseInt(rutNumeros[i]) * multiplicador;
+    suma += parseInt(rutNumeros[i], 10) * multiplicador;
     multiplicador = multiplicador === 7 ? 2 : multiplicador + 1;
   }
-  
+
   const resto = 11 - (suma % 11);
-  
+
   if (resto === 11) return '0';
   if (resto === 10) return 'K';
   return resto.toString();
@@ -62,14 +62,32 @@ export function calcularDV(rutSinDV: string): string {
  */
 export function validarRut(rut: string): boolean {
   if (!validarFormatoRut(rut)) return false;
-  
+
   const rutLimpio = rut.replace(/\./g, '').replace(/-/g, '');
   const dvIngresado = rutLimpio.slice(-1).toUpperCase();
   const rutNumeros = rutLimpio.slice(0, -1);
-  
+
   const dvCalculado = calcularDV(rutNumeros);
-  
+
   return dvIngresado === dvCalculado;
+}
+
+/**
+ * Función auxiliar para formatear el número del RUT con puntos.
+ * Evita usar una expresión regular con posible backtracking.
+ *
+ * Entrada: 12345678
+ * Salida: 12.345.678
+ */
+function formatearNumeroRut(numero: string): string {
+  const partes: string[] = [];
+
+  for (let i = numero.length; i > 0; i -= 3) {
+    const inicio = Math.max(i - 3, 0);
+    partes.unshift(numero.slice(inicio, i));
+  }
+
+  return partes.join('.');
 }
 
 /**
@@ -78,18 +96,18 @@ export function validarRut(rut: string): boolean {
  * Salida: 12.345.678-9
  */
 export function formatearRut(rut: string): string {
-  // Remover puntos y guiones existentes
-  let rutLimpio = rut.replace(/\./g, '').replace(/-/g, '').replace(/\s/g, '');
-  
+  // Remover puntos, guiones y espacios existentes
+  const rutLimpio = rut.replace(/\./g, '').replace(/-/g, '').replace(/\s/g, '');
+
   if (rutLimpio.length < 2) return rut;
-  
+
   // Separar número y dígito verificador
   const dv = rutLimpio.slice(-1);
   const numero = rutLimpio.slice(0, -1);
-  
-  // Formatear con puntos (de derecha a izquierda cada 3 dígitos)
-  const numeroFormateado = numero.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-  
+
+  // Formatear con puntos de derecha a izquierda cada 3 dígitos
+  const numeroFormateado = formatearNumeroRut(numero);
+
   return `${numeroFormateado}-${dv}`;
 }
 
