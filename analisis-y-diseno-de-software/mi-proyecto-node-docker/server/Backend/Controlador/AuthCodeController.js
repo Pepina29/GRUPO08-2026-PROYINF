@@ -16,7 +16,8 @@ function getRutFromRequest(req) {
 class AuthCodeController {
   async guardar(req, res) {
     try {
-      console.log("BODY RECIBIDO:", req.body);
+      // Log general sin exponer datos enviados por el usuario
+      console.log("Solicitud de guardado de código autenticador recibida");
 
       const { code } = req.body;
       const rut = getRutFromRequest(req);
@@ -86,66 +87,66 @@ class AuthCodeController {
   }
 
   async verificar(req, res) {
-  try {
-    const { rut: rutBody, code, autenticador } = req.body;
+    try {
+      const { rut: rutBody, code, autenticador } = req.body;
 
-    const rut =
-      req.session?.user?.rut ||
-      req.session?.user?.rut_cliente ||
-      req.session?.loanUser?.rut ||
-      req.session?.loanUser?.rut_cliente ||
-      req.user?.rut ||
-      req.user?.rut_cliente ||
-      rutBody;
+      const rut =
+        req.session?.user?.rut ||
+        req.session?.user?.rut_cliente ||
+        req.session?.loanUser?.rut ||
+        req.session?.loanUser?.rut_cliente ||
+        req.user?.rut ||
+        req.user?.rut_cliente ||
+        rutBody;
 
-    const codigo = code || autenticador;
+      const codigo = code || autenticador;
 
-    if (!rut) {
-      return res.status(401).json({
+      if (!rut) {
+        return res.status(401).json({
+          ok: false,
+          valid: false,
+          message: "No hay usuario autenticado",
+        });
+      }
+
+      if (!codigo || !/^\d{6}$/.test(String(codigo))) {
+        return res.status(400).json({
+          ok: false,
+          valid: false,
+          message: "El código debe tener exactamente 6 dígitos",
+        });
+      }
+
+      const codigoNormalizado = String(codigo).padStart(6, "0");
+
+      const esValido = await userModel.verificarAutenticador(
+        rut,
+        codigoNormalizado
+      );
+
+      if (!esValido) {
+        return res.status(401).json({
+          ok: false,
+          valid: false,
+          message: "Código incorrecto",
+        });
+      }
+
+      return res.json({
+        ok: true,
+        valid: true,
+        message: "Código verificado correctamente",
+      });
+    } catch (error) {
+      console.error("Error verificando autenticador:", error);
+
+      return res.status(500).json({
         ok: false,
         valid: false,
-        message: "No hay usuario autenticado",
+        message: "Error interno verificando el código",
       });
     }
-
-    if (!codigo || !/^\d{6}$/.test(String(codigo))) {
-      return res.status(400).json({
-        ok: false,
-        valid: false,
-        message: "El código debe tener exactamente 6 dígitos",
-      });
-    }
-
-    const codigoNormalizado = String(codigo).padStart(6, "0");
-
-    const esValido = await userModel.verificarAutenticador(
-      rut,
-      codigoNormalizado
-    );
-
-    if (!esValido) {
-      return res.status(401).json({
-        ok: false,
-        valid: false,
-        message: "Código incorrecto",
-      });
-    }
-
-    return res.json({
-      ok: true,
-      valid: true,
-      message: "Código verificado correctamente",
-    });
-  } catch (error) {
-    console.error("Error verificando autenticador:", error);
-
-    return res.status(500).json({
-      ok: false,
-      valid: false,
-      message: "Error interno verificando el código",
-    });
   }
-}
 }
 
 export default new AuthCodeController();
