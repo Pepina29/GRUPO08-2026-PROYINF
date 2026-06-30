@@ -62,6 +62,14 @@ Las Pruebas 2 (Crear Simulación) y 3 (Consultar Simulaciones) quedaron completa
 ## Archivos incluidos en esta carpeta
 
 - `Test_Plan.jmx` — Plan de pruebas completo con las 4 pruebas diseñadas.
-- `response_time_prueba1.png` — Gráfico de Response Time de la Prueba 1 (Login Masivo).
-- `response_time_prueba4.png` — Gráfico de Response Time de la Prueba 4 (Carga de Documentos).
+- `ResponseTimeGraph-Prueba1-LoginMasivo.png` — Gráfico de Response Time de la Prueba 1 (Login Masivo).
+- `ResponseTimeGraph-Prueba4-CargaDocumentos.png` — Gráfico de Response Time de la Prueba 4 (Carga de Documentos).
 - `README.md` — Este documento, con la explicación de resultados y razonamientos.
+
+---
+
+## Sobre la integridad de las pruebas (no se ajustaron resultados para que pasen)
+
+Siguiendo el principio de que un caso de prueba que falla es tan valioso (o más) que uno que pasa, en ningún momento se modificaron los criterios de éxito, los umbrales de tiempo, ni el comportamiento del sistema bajo prueba para forzar un resultado exitoso. El único ajuste realizado durante el proceso fue corregir un dato de entrada inválido en la Prueba 4 el cual era el formato del RUT enviado, una vez identificada la causa raíz del fallo , y no el resultado de la prueba en sí ni el criterio de aceptación.
+
+Con los volúmenes de carga utilizados (30 a 100 usuarios concurrentes), el sistema respondió siempre dentro de los tiempos esperados, sin generar fallos de performance. Esto no se interpreta como una limitación del proceso de pruebas, sino como una indicación de que el rango de carga evaluado se encuentra por debajo de la capacidad real del sistema en el entorno local de pruebas (Docker + PostgreSQL en un solo host). Para efectivamente "romper" el tiempo de respuesta esperado y evidenciar un defecto de performance, sería necesario escalar significativamente el número de usuarios concurrentes (por ejemplo, a varios cientos o miles, con un ramp-up más agresivo) o ejecutar las pruebas contra un ambiente con recursos más limitados, lo cual queda propuesto como trabajo futuro.
